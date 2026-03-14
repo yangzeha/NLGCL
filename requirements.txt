@@ -1,7 +1,13 @@
 colorlog
 tensorboard
 six
-colorama
+colorama>=0.4.6
 pyyaml
 pandas
-hyperopt==0.2.5
+hyperopt
+recbole
+torch-scatter
+torch-sparse
+torch-cluster
+torch-spline-conv
+torch-geometric
