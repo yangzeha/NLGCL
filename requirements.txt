@@ -6,8 +6,8 @@ pyyaml
 pandas
 hyperopt
 recbole
-torch-scatter
-torch-sparse
-torch-cluster
-torch-spline-conv
+# torch-scatter
+# torch-sparse
+# torch-cluster
+# torch-spline-conv
 torch-geometric
