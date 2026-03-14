@@ -23,11 +23,44 @@ class Config(RecBole_Config):
 
     def compatibility_settings(self):
         import numpy as np
-        np.bool = np.bool_
-        np.int = np.int_
-        np.float = np.float_
-        np.complex = np.complex_
-        np.object = np.object_
+        
+        # NumPy 1.20+ compatibility
+        if not hasattr(np, 'bool'):
+            np.bool = bool
+        if not hasattr(np, 'int'):
+            np.int = int
+        if not hasattr(np, 'float'):
+            np.float = float
+        if not hasattr(np, 'complex'):
+            np.complex = complex
+        if not hasattr(np, 'object'):
+            np.object = object
+
+        # NumPy 2.0+ compatibility (handle removal of np.float_, etc.)
+        try:
+            np.bool = np.bool_
+        except AttributeError:
+            np.bool = bool
+            
+        try:
+            np.int = np.int_
+        except AttributeError:
+            np.int = int
+            
+        try:
+            np.float = np.float_
+        except AttributeError:
+            np.float = float
+            
+        try:
+            np.complex = np.complex_
+        except AttributeError:
+            np.complex = complex
+            
+        try:
+            np.object = np.object_
+        except AttributeError:
+            np.object = object
         np.str = np.str_
         np.long = np.int_
         np.unicode = np.unicode_
