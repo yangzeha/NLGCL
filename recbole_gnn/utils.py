@@ -109,15 +109,7 @@ def data_preparation(config, dataset):
             - test_data (AbstractDataLoader): The dataloader for testing.
     """
     seq_module_path = '.'.join(['recbole_gnn.model.sequential_recommender', config['model'].lower()])
-    
-    is_sequential_model = False
-    try:
-        if importlib.util.find_spec(seq_module_path, __name__):
-            is_sequential_model = True
-    except ModuleNotFoundError:
-        pass
-
-    if is_sequential_model:
+    if importlib.util.find_spec(seq_module_path, __name__):
         # Special condition for sequential models of RecBole-Graph
         dataloaders = load_split_dataloaders(config)
         if dataloaders is not None:
