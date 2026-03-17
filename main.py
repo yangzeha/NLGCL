@@ -40,6 +40,9 @@ def run_single_model(args):
     # trainer loading and initialization
     trainer = get_trainer(config['MODEL_TYPE'], config['model'])(config, model)
 
+    if hasattr(args, 'resume_file') and args.resume_file:
+        trainer.resume_checkpoint(args.resume_file)
+
     # model training
     best_valid_score, best_valid_result = trainer.fit(
         train_data, valid_data, saved=True, show_progress=config['show_progress']
@@ -92,6 +95,7 @@ if __name__ == '__main__':
                         help='The datasets can be:')
     # 'yelp', 'pinterest', 'QB-video', 'alibaba'
     parser.add_argument('--config_files', type=str, default='', help='External config file name.')
+    parser.add_argument('--resume_file', type=str, default=None, help='path to the checkpoint file to resume training')
     args, _ = parser.parse_known_args()
 
     # Config files
