@@ -1,0 +1,2 @@
+class SGL:
+    pass
