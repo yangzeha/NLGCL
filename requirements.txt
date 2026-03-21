@@ -7,4 +7,5 @@ pandas
 hyperopt==0.2.5
 torch>=1.13.1
 numpy<2.0.0
+torch_geometric
 # python>=3.9.18
