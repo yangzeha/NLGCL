@@ -47,7 +47,7 @@ class NLGCL(GeneralGraphRecommender):
         self.cl_temp = config['cl_temp']
         self.cl_reg = config['cl_reg']
         self.alpha = config['alpha']
-        self.pos_sim_threshold = config.get('pos_sim_threshold', 0.1)
+        self.pos_sim_threshold = config['pos_sim_threshold'] if 'pos_sim_threshold' in config else 0.1
 
         # Build training user-item edge ids for fast edge existence checks in a batch.
         train_user = dataset.inter_feat[self.USER_ID].long()
