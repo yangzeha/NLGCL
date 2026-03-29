@@ -115,4 +115,11 @@ def init_logger(config):
     sh.setLevel(level)
     sh.setFormatter(sformatter)
 
+    # Remove all existing handlers on the root logger to prevent duplicate output
+    # when init_logger is called multiple times within the same process.
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+        handler.close()
+
     logging.basicConfig(level=level, handlers=[sh, fh])
