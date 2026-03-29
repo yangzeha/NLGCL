@@ -47,6 +47,13 @@ class NLGCL(GeneralGraphRecommender):
         self.cl_temp = config['cl_temp']
         self.cl_reg = config['cl_reg']
         self.alpha = config['alpha']
+        self.pos_sim_threshold = config.get('pos_sim_threshold', 0.1)
+
+        # Build training user-item edge ids for fast edge existence checks in a batch.
+        train_user = dataset.inter_feat[self.USER_ID].long()
+        train_item = dataset.inter_feat[self.ITEM_ID].long()
+        ui_edge_ids = train_user * self.n_items + train_item
+        self.ui_edge_ids = torch.unique(ui_edge_ids, sorted=True).to(self.device)
 
         # define layers and loss
         self.user_embedding = torch.nn.Embedding(num_embeddings=self.n_users, embedding_dim=self.latent_dim)
@@ -98,16 +105,35 @@ class NLGCL(GeneralGraphRecommender):
         cl_loss = -torch.log(pos_score / ttl_score).sum()
         return cl_loss
 
+    def _has_ui_edge(self, user, item):
+        pair_ids = user.long() * self.n_items + item.long()
+        pos = torch.searchsorted(self.ui_edge_ids, pair_ids)
+        valid = pos < self.ui_edge_ids.numel()
+        edge_mask = torch.zeros_like(valid, dtype=torch.bool)
+        edge_mask[valid] = self.ui_edge_ids[pos[valid]] == pair_ids[valid]
+        return edge_mask
+
+    def _binary_contrastive_loss(self, user_embedding, item_embedding, pos_mask):
+        pair_sim = F.cosine_similarity(user_embedding, item_embedding, dim=1)
+        logits = pair_sim / self.cl_temp
+        labels = pos_mask.float()
+        return F.binary_cross_entropy_with_logits(logits, labels, reduction='sum')
+
     def neighbor_cl_loss(self, embeddings_list, user, pos_item, neg_item):
         ego_embedding_u, ego_embedding_i = torch.split(embeddings_list[0], [self.n_users, self.n_items])
         cl_u = 0
         cl_i = 0
         for layer_idx in range(1, self.n_layers + 1):
             cur_embedding_u, cur_embedding_i = torch.split(embeddings_list[layer_idx], [self.n_users, self.n_items])
-            cl_u = cl_u + self.InfoNCE(cur_embedding_i[pos_item], ego_embedding_u[user],
-                                     ego_embedding_u[user]) + 1e-6
-            cl_i = cl_i + self.InfoNCE(cur_embedding_u[user], ego_embedding_i[pos_item],
-                                     ego_embedding_i[pos_item]) + 1e-6
+            edge_mask = self._has_ui_edge(user, pos_item)
+            sim_mask = F.cosine_similarity(cur_embedding_u[user], cur_embedding_i[pos_item], dim=1) > self.pos_sim_threshold
+            pos_mask = edge_mask & sim_mask
+            neg_mask = torch.zeros_like(pos_mask, dtype=torch.bool)
+
+            # Positive samples: edge-connected user-item pairs with similarity > threshold.
+            # Negative samples: all remaining pairs.
+            cl_u = cl_u + self._binary_contrastive_loss(cur_embedding_u[user], cur_embedding_i[pos_item], pos_mask) + 1e-6
+            cl_i = cl_i + self._binary_contrastive_loss(cur_embedding_u[user], cur_embedding_i[neg_item], neg_mask) + 1e-6
             # update embeddings
             ego_embedding_u, ego_embedding_i = cur_embedding_u, cur_embedding_i
 

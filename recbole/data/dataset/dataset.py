@@ -639,7 +639,7 @@ class Dataset(torch.utils.data.Dataset):
                 elif ftype == FeatureType.FLOAT:
                     feat[field].fillna(value=feat[field].mean(), inplace=True)
                 else:
-                    dtype = np.int64 if ftype == FeatureType.TOKEN_SEQ else np.float
+                    dtype = np.int64 if ftype == FeatureType.TOKEN_SEQ else float
                     feat[field] = feat[field].apply(
                         lambda x: np.array([], dtype=dtype)
                         if isinstance(x, float)
