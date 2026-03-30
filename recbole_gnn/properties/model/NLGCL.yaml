@@ -1,26 +1,17 @@
 embedding_size: 64
-n_layers: 3
+#n_layers: [1, 2, 3]
+n_layers: 2
 
 reg_weight: 1e-4
 
+#cl_temp: [0.1, 0.15, 0.2]
 cl_temp: 0.1
 alpha: 0.6
+cl_reg: 5e-5
+#cl_reg: [1e-5, 5e-5, 1e-4]
 
-# --- Similarity-aware CL hyper-parameter search grid ---
-# Binary CE loss is weaker than InfoNCE; cl_reg needs to be ~10x higher.
-# pos_sim_threshold=0.0 disables sim filter (pure edge-based positive).
-# Increase warm_up_step so embeddings are meaningful before threshold kicks in.
-#
-# Priority search order (run one at a time on Kaggle):
-#   R1: pos_sim_threshold=0.0, cl_reg=1e-4, warm_up_step=50   ← current default
-#   R2: pos_sim_threshold=0.05, cl_reg=1e-4, warm_up_step=50
-#   R3: pos_sim_threshold=0.1,  cl_reg=1e-4, warm_up_step=100
-#   R4: pos_sim_threshold=0.0,  cl_reg=5e-4, warm_up_step=50
-#   R5: pos_sim_threshold=0.1,  cl_reg=5e-4, warm_up_step=100
-#
-# Baseline (before similarity, best result):
-#   n_layers=3, cl_temp=0.1, cl_reg=1e-5  →  ndcg@10=0.0988
-# ---------------------------------------------------------
-cl_reg: 1e-4
-pos_sim_threshold: 0.0
-warm_up_step: 50
+#hyper_parameters: ["cl_reg"]
+
+
+
+warm_up_step: 30
